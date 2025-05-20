@@ -116,6 +116,30 @@ function check() {
 # 获取租户OCID
 compartment_id=$(oci iam availability-domain list --query 'data[0]."compartment-id"' --raw-output)
 echo -e "${GREEN}租户OCID: $compartment_id ${RESET}"
+# 删除已有用户
+user_id_old=$(oci iam user list --compartment-id $compartment_id --name $user_name --query 'data[0]."id"' --raw-output)
+if [ "$user_id_old" == "" ]; then
+ echo -e "${GREEN}无需删除已有用户"
+else
+ user_old_result=$(oci iam user delete --user-id $user_id_old --force 2>&1)
+ check "$user_old_result" "已有用户删除成功"
+fi
+# 删除已有组
+group_id_old=$(oci iam  group list --compartment-id $compartment_id --name $group_name --query 'data[0]."id"' --raw-output)
+if [ "$group_id_old" == "" ]; then
+ echo -e "${GREEN}无需删除已有组"
+else
+ group_old_result=$(oci iam group delete --group-id $group_id_old --force 2>&1)
+ check "$group_old_result" "已有组删除成功"
+fi
+# 删除已有策略
+policy_id_old=$(oci iam policy list --compartment-id $compartment_id --name $policy_name --query 'data[0]."id"' --raw-output)
+if [ "$policy_id_old" == "" ]; then
+ echo -e "${GREEN}无需删除已有策略"
+else
+ policy_old_result=$(oci iam policy delete --policy-id $policy_id_old --force 2>&1)
+ check "$policy_old_result" "已有策略删除成功"
+fi
 # 创建组
 group_result=$(oci iam group create --compartment-id $compartment_id --name $group_name --description $group_des 2>&1)
 check "$group_result" "组创建成功"
