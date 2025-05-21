@@ -116,14 +116,6 @@ function check() {
 # 获取租户OCID
 compartment_id=$(oci iam availability-domain list --query 'data[0]."compartment-id"' --raw-output)
 echo -e "${GREEN}租户OCID: $compartment_id ${RESET}"
-# 删除已有用户
-user_id_old=$(oci iam user list --compartment-id $compartment_id --name $user_name --query 'data[0]."id"' --raw-output)
-if [ "$user_id_old" == "" ]; then
- echo -e "${GREEN}无需删除已有用户"
-else
- user_old_result=$(oci iam user delete --user-id $user_id_old --force 2>&1)
- check "$user_old_result" "已有用户删除成功"
-fi
 # 删除已有组
 group_id_old=$(oci iam  group list --compartment-id $compartment_id --name $group_name --query 'data[0]."id"' --raw-output)
 if [ "$group_id_old" == "" ]; then
@@ -132,29 +124,36 @@ else
  group_old_result=$(oci iam group delete --group-id $group_id_old --force 2>&1)
  check "$group_old_result" "已有组删除成功"
 fi
-# 删除已有策略
-policy_id_old=$(oci iam policy list --compartment-id $compartment_id --name $policy_name --query 'data[0]."id"' --raw-output)
-if [ "$policy_id_old" == "" ]; then
- echo -e "${GREEN}无需删除已有策略"
-else
- policy_old_result=$(oci iam policy delete --policy-id $policy_id_old --force 2>&1)
- check "$policy_old_result" "已有策略删除成功"
-fi
 # 创建组
 group_result=$(oci iam group create --compartment-id $compartment_id --name $group_name --description $group_des 2>&1)
 check "$group_result" "组创建成功"
 group_id=$(echo $group_result | jq -r '.data.id')
+# 删除已有策略
+policy_id_old=$(oci iam policy list --compartment-id $compartment_id --name $policy_name --query 'data[0]."id"' --raw-output)
+if [ "$policy_id_old" == "" ]; then
+ echo -e "${GREEN}无已有策略,跳过删除"
+else
+ policy_old_result=$(oci iam policy delete --policy-id $policy_id_old --force 2>&1)
+ check "$policy_old_result" "已有策略删除成功"
+fi
 # 创建策略
 policy_result=$(oci iam policy create --compartment-id $compartment_id --description $policy_des --name $policy_name --statements $policy_file 2>&1)
 check "$policy_result" "策略创建成功"
 # 创建用户
-if [ "$user_email" == "" ]; then
- user_result=$(oci iam user create --name $user_name --description $user_des --compartment-id $compartment_id 2>&1)
+user_id_old=$(oci iam user list --compartment-id $compartment_id --name $user_name --query 'data[0]."id"' --raw-output)
+if [ "$user_id_old" == "" ]; then
+ if [ "$user_email" == "" ]; then
+  user_result=$(oci iam user create --name $user_name --description $user_des --compartment-id $compartment_id 2>&1)
+ else
+  user_result=$(oci iam user create --name $user_name --description $user_des --compartment-id $compartment_id --email $user_email 2>&1)
+ fi
+ check "$user_result" "用户创建成功"
+ user_id=$(echo $user_result | jq -r '.data.id')
 else
- user_result=$(oci iam user create --name $user_name --description $user_des --compartment-id $compartment_id --email $user_email 2>&1)
+ #user_old_result=$(oci iam user delete --user-id $user_id_old --force 2>&1)
+ user_id=$user_id_old
+ echo -e "${GREEN}用户已存在,跳过创建"
 fi
-check "$user_result" "用户创建成功"
-user_id=$(echo $user_result | jq -r '.data.id')
 # 将用户添加到组
 add_result=$(oci iam group add-user --group-id $group_id --user-id $user_id 2>&1)
 check "$add_result" "用户添加到组成功\n\n后续可手动在用户 $user_name 中添加 API密钥 (无需登录该用户)"
