@@ -3,13 +3,14 @@
 # 颜色
 RED="\e[31m"
 GREEN="\e[32m"
+RESET="\e[0m"
 echo "--- docker_restart_tm定时任务进行重启 ---" # 打印标题
 # 显示处理前的 crontab 列表
-echo -e "${GREEN}1.显示处理前的 crontab 列表"
+echo -e "${GREEN}1.显示处理前的 crontab 列表${RESET}"
 crontab -l
 
 # 提示开始处理 crontab
-echo -e "${GREEN}2.开始处理 crontab"
+echo -e "${GREEN}2.开始处理 crontab${RESET}"
 # 将当前的 crontab 配置导出到临时文件 conf 中
 crontab -l > conf
 # 向 conf 文件追加一条新的定时任务：每月1日0点0分重启 docker 容器 tm，并记录日志
@@ -19,8 +20,8 @@ crontab conf
 # 删除临时文件 conf
 rm -f conf
 # 提示结束处理 crontab
-echo -e "${GREEN}3.处理完成 crontab"
+echo -e "${GREEN}3.处理完成 crontab${RESET}"
 # 显示处理后的 crontab 列表
-echo -e "${GREEN}4.显示处理后的 crontab 列表"
+echo -e "${GREEN}4.显示处理后的 crontab 列表${RESET}"
 crontab -l
-echo -e "\n-----------------------------------" # 打印分隔线
+echo -e "${RESET}\n-----------------------------------${RESET}" # 打印分隔线
