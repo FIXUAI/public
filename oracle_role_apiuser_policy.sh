@@ -1,6 +1,6 @@
 #!/bin/bash
 # 添加一个用户, 该用户无用户管理权限, 只能管理实例、存储、网络
-# 在 Cloud Shell 中执行
+# 在 Cloud Shell 中执行 bash oracle_role_apiuser_policy.sh -ue your_email@example.com -t new 注意替换
 # 颜色
 RED="\e[31m"
 GREEN="\e[32m"
@@ -69,7 +69,7 @@ while [[ $# -ge 1 ]]; do
   ignore_error="1"
   ;;
  -h | --help )
-  echo -ne "Usage: bash $(basename $0) [options]\n\033[33m\033[04m-c\033[0m\t\t租户OCID, 默认自动获取\n\033[33m\033[04m-g\033[0m\t\t组名称, 默认Core-Admins\n\033[33m\033[04m-gd\033[0m\t\t组描述, 默认Core-Admins\n\033[33m\033[04m-p\033[0m\t\t策略名称, 默认Core-Admins\n\033[33m\033[04m-pd\033[0m\t\t策略描述, 默认Core-Admins\n\033[33m\033[04m-pf\033[0m\t\t策略语句文件, 默认file://statements.json\n\033[33m\033[04m-u\033[0m\t\t用户名称, 默认Core-Admin\n\033[33m\033[04m-ud\033[0m\t\t用户描述, 默认Core-Admin\n\033[33m\033[04m-ue\033[0m\t\t用户邮箱, 当type为new时必填, 默认xx@domain.sssss\n\033[33m\033[04m-t\033[0m\t\t控制面板类型, new或者old, 默认old\n\033[33m\033[04m--ignore_error\033[0m\t忽略错误返回信息\n\033[33m\033[04m-h\033[0m\t\t帮助\n\nExample: bash $(basename $0) -ue xx@xx.com -t new --ignore_error \n"
+  echo -ne "Usage: bash $(basename $0) [options]\n\033[33m\033[04m-c\033[0m\t\t租户OCID, 默认自动获取\n\033[33m\033[04m-g\033[0m\t\t组名称, 默认Core-Admins\n\033[33m\033[04m-gd\033[0m\t\t组描述, 默认Core-Admins\n\033[33m\033[04m-p\033[0m\t\t策略名称, 默认Core-Admins\n\033[33m\033[04m-pd\033[0m\t\t策略描述, 默认Core-Admins\n\033[33m\033[04m-pf\033[0m\t\t策略语句文件, 默认file://statements.json\n\033[33m\033[04m-u\033[0m\t\t用户名称, 默认Core-Admin\n\033[33m\033[04m-ud\033[0m\t\t用户描述, 默认Core-Admin\n\033[33m\033[04m-ue\033[0m\t\t用户邮箱, 当type为new时必填, 默认xxxxxx@domain.com\n\033[33m\033[04m-t\033[0m\t\t控制面板类型, new或者old, 默认old\n\033[33m\033[04m--ignore_error\033[0m\t忽略错误返回信息\n\033[33m\033[04m-h\033[0m\t\t帮助\n\nExample: bash $(basename $0) -ue xx@xx.com -t new --ignore_error \n"
   exit 1;
   ;;
  * )
@@ -78,6 +78,15 @@ while [[ $# -ge 1 ]]; do
   ;;
  esac
  done
+
+# 如果type为new，且user_email为默认值，则提示用户输入
+if [ "$type" == "new" ] && [ "$user_email" == "xxxxxx@domain.com" ]; then
+    read -p "请输入用户邮箱（留空则使用默认值: xxxxxx@domain.com）: " input_email
+    if [ -n "$input_email" ]; then
+        user_email="$input_email"
+    fi
+fi
+
 # 检查参数
 if [ "$type" == "new" ]; then
  if [ "$user_email" == "" ]; then
@@ -85,6 +94,7 @@ if [ "$type" == "new" ]; then
  exit 1
  fi
 fi
+
 # 策略语句
 if [ "$type" == "new" ]; then
  echo "[
