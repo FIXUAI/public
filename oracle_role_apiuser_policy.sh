@@ -1,6 +1,7 @@
 #!/bin/bash
 # 添加一个用户, 该用户无用户管理权限, 只能管理实例、存储、网络
 # 在 Cloud Shell 中执行 bash oracle_role_apiuser_policy.sh -ue your_email@example.com -t new 注意替换
+# 使用举例 wget -N "https://raw.githubusercontent.com/FIXUAI/public/refs/heads/main/oracle_role_apiuser_policy.sh" --no-check-certificate && chmod +x oracle_role_apiuser_policy.sh && bash oracle_role_apiuser_policy.sh -ue orapi@60s.in -t new
 # 颜色
 RED="\e[31m"
 GREEN="\e[32m"
